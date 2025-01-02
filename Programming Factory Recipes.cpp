@@ -4,6 +4,7 @@
 #include<span>
 #include<variant>
 #include<charconv>
+#include<cmath>
 
 using namespace std::literals::string_literals;
 
@@ -30,6 +31,11 @@ struct Value
 	std::string stringify() const
 	{
 		return std::visit([](auto value){ return ::stringify(value);},value);
+	}
+
+	bool empty()
+	{
+		return std::holds_alternative<std::nullptr_t>(value);
 	}
 };
 
@@ -60,11 +66,24 @@ Value add(const Value &first, const Value &second)
 	throw "unexpected value type " + std::to_string(first.value.index()) + " and " + std::to_string(second.value.index());
 }
 
+Value mod(const Value &first, const Value &second)
+{
+	const float *f, *s;
+	if((f = std::get_if<float>(&first.value)) && (s = std::get_if<float>(&second.value))){
+		if(*f>*s){
+			std::swap(f,s);
+		}
+		return Value{.value = std::fmod(*s,*f)};
+	}
+	return {};
+}
+
 struct Operation
 {
 	enum{
 		extracting,
-		adding
+		adding,
+		remindering
 	} operation;
 	std::string getSymbol()
 	{
@@ -73,6 +92,8 @@ struct Operation
 			return "";
 		case adding:
 			return "+";
+		case remindering:
+			return "%";
 		
 		default:
 			throw "lack symbol for operation " + std::to_string(operation);
@@ -134,7 +155,7 @@ using Recipes = std::vector<Recipe>;
 void more_recipes(Recipes &recipes)
 {
 	try{
-		recipes.reserve(recipes.size()+recipes.size()*recipes.size());
+		recipes.reserve(recipes.size()+recipes.size()*recipes.size()*2);
 	}catch(std::bad_alloc&){
 		throw "Not enough memory to create now recipes";
 	}
@@ -146,6 +167,14 @@ void more_recipes(Recipes &recipes)
 				.operation = Operation::adding,
 				.recipients = {first.value,second.value}
 			});
+			Value value = mod(first.value, second.value);
+			if(!value.empty()){
+				recipes.push_back(Recipe{
+					.value = value,
+					.operation = Operation::remindering,
+					.recipients = {first.value,second.value}
+				});
+			}
 		}
 	}
 }
