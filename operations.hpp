@@ -3,6 +3,7 @@
 #include<cmath>
 #include<functional>
 #include<vector>
+#include<optional>
 
 #include"value.hpp"
 
@@ -26,9 +27,18 @@ struct Operations
 		return operations.size();
 	}
 
-	static Operation& operation(int id)
+	static Operation operation(int id)
 	{
 		return operations[id];
+	}
+
+	static std::optional<Operation> operation(const std::string& name)
+	{
+		auto operation = std::ranges::find(operations,name,&Operation::name);
+		if(operation == operations.end()){
+			return {};
+		}
+		return *operation;
 	}
 
 	static Operation define(Operation operation)
@@ -58,6 +68,8 @@ struct Operations
 		Defined():Operation(define<O>()){}
 	};
 };
+
+using OperationList = std::vector<Operations::Operation>;
 
 struct Add
 {

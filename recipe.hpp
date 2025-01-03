@@ -9,7 +9,7 @@
 struct Recipe
 {
 	Value value;
-	Operations::Operation *operation;
+	const Operations::Operation *operation;
 	std::vector<Value> recipients;
 	std::string getShortExpression()
 	{
@@ -27,16 +27,16 @@ struct Recipe
 using Recipes = std::vector<Recipe>;
 
 
-void more_recipes(Recipes &recipes)
+void more_recipes(Recipes &recipes, const OperationList &operations)
 {
+	const OperationList &operationList = operations.empty() ? Operations::operations : operations;
 	try{
-		recipes.reserve(recipes.size()+recipes.size()*recipes.size()*Operations::size());
+		recipes.reserve(recipes.size()+recipes.size()*recipes.size()*operationList.size());
 	}catch(std::bad_alloc&){
 		throw "Not enough memory to create now recipes";
 	}
 	std::span origin(recipes);
-	for(auto &operation: Operations::operations){
-
+	for(const auto &operation: operationList){
 		if(operation.arity == 1){
 			for(const auto &first: origin){
 				Value value = operation.eval({first.value});

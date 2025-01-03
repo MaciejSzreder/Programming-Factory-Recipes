@@ -47,9 +47,14 @@ struct Interpreter
 	void execute_command(Command &command, std::ostream& out)
 	{
 		static Recipes creatable;
+		static OperationList operations;
 
 		if(command.type == Command::add){
-			creatable.push_back(Recipe{.value=command.argument});
+			if(auto operation = Operations::operation(command.argument.stringify())){
+				operations.push_back(*operation);
+			}else{
+				creatable.push_back(Recipe{.value=command.argument});
+			}
 		}else if(command.type == Command::find){
 			for(;;){
 				auto value = std::ranges::find_if(
@@ -61,7 +66,7 @@ struct Interpreter
 					out << value->getShortRecipe() << '\n';
 					return;
 				}
-				more_recipes(creatable);
+				more_recipes(creatable, operations);
 			}
 		}else{
 			throw "not implemented command";
