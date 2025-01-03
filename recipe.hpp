@@ -9,11 +9,11 @@
 struct Recipe
 {
 	Value value;
-	Operation operation{Operation::extracting};
+	Operations::Operation *operation;
 	std::vector<Value> recipients;
 	std::string getShortExpression()
 	{
-		std::string expression = operation.getSymbol();
+		std::string expression = operation?operation->symbol:value.stringify();
 		for(const auto &recipient:recipients){
 			expression += ' ' + recipient.stringify();
 		}
@@ -30,26 +30,39 @@ using Recipes = std::vector<Recipe>;
 void more_recipes(Recipes &recipes)
 {
 	try{
-		recipes.reserve(recipes.size()+recipes.size()*recipes.size()*2);
+		recipes.reserve(recipes.size()+recipes.size()*recipes.size()*Operations::size());
 	}catch(std::bad_alloc&){
 		throw "Not enough memory to create now recipes";
 	}
 	std::span origin(recipes);
-	for(const auto &first: origin){
-		for(const auto &second: origin){
-			recipes.push_back(Recipe{
-				.value = Operation::add(first.value, second.value),
-				.operation = Operation::adding,
-				.recipients = {first.value,second.value}
-			});
-			Value value = Operation::mod(first.value, second.value);
-			if(!value.empty()){
-				recipes.push_back(Recipe{
-					.value = value,
-					.operation = Operation::remaindering,
-					.recipients = {first.value,second.value}
-				});
+	for(auto &operation: Operations::operations){
+
+		if(operation.arity == 1){
+			for(const auto &first: origin){
+				Value value = operation.eval({first.value});
+				if(!value.empty()){
+					recipes.push_back(Recipe{
+						.value = value,
+						.operation = &operation,
+						.recipients = {first.value}
+					});
+				}
 			}
+		} else if(operation.arity == 2){	
+			for(auto &first: origin){
+				for(const auto &second: origin){
+					Value value = operation.eval({first.value, second.value});
+					if(!value.empty()){
+						recipes.push_back(Recipe{
+							.value = value,
+							.operation = &operation,
+							.recipients = {first.value,second.value}
+						});
+					}
+				}
+			}
+		} else {
+			throw "Arity " + std::to_string(operation.arity) + " is not implemented";
 		}
 	}
 }

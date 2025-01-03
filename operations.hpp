@@ -1,35 +1,73 @@
 #pragma once
 
 #include<cmath>
+#include<functional>
+#include<vector>
 
 #include"value.hpp"
 
-struct Operation
-{
-	enum{
-		extracting,
-		adding,
-		remaindering
-	} operation;
 
-	std::string getSymbol()
+struct Operations
+{
+	struct Operation
 	{
-		switch (operation){
-		case extracting:
-			return "";
-		case adding:
-			return "+";
-		case remaindering:
-			return "%";
-		
-		default:
-			throw "lack symbol for operation " + std::to_string(operation);
-		}
+		using ArgumentList = std::vector<Value>;
+		using function = std::function<Value(const ArgumentList&)>;
+		int id;
+		std::string name,symbol;
+		int arity;
+		function eval;
+	};
+
+	inline static std::vector<Operation> operations;
+
+	static int size()
+	{
+		return operations.size();
 	}
 
-		
-	static Value add(const Value &first, const Value &second)
+	static Operation& operation(int id)
 	{
+		return operations[id];
+	}
+
+	static Operation define(Operation operation)
+	{
+		operation.id = (int)operations.size();
+		operations.push_back(operation);
+		return operations.back();
+	}
+	static Operation define(auto obj)
+	{
+		return define({
+			.name = obj.name,
+			.symbol = obj.symbol,
+			.arity = obj.arity,
+			.eval = decltype(obj)::eval
+		});
+	}
+	template<class O>
+	static Operation define()
+	{
+		return define(O());
+	}
+
+	template<class O>
+	struct Defined:Operation
+	{
+		Defined():Operation(define<O>()){}
+	};
+};
+
+struct Add
+{
+	inline static Operations::Defined<Add> info;
+	std::string symbol = "+", name = "add";
+	int arity = 2;
+
+	static Value eval(const Operations::Operation::ArgumentList& arguments)
+	{
+		const Value &first = arguments[0], &second = arguments[1];
 		{
 			const float *f, *s;
 			if((f = std::get_if<float>(&first.value)) && (s = std::get_if<float>(&second.value))){
@@ -54,15 +92,38 @@ struct Operation
 		}
 		throw "unexpected value type " + std::to_string(first.value.index()) + " and " + std::to_string(second.value.index());
 	}
+};
 
-	static Value mod(const Value &first, const Value &second)
+struct Remainder
+{
+	inline static Operations::Defined<Remainder> info;
+	std::string symbol = "%", name = "reminder";
+	int arity = 2;
+
+	static Value eval(const Operations::Operation::ArgumentList& arguments)
 	{
 		const float *f, *s;
-		if((f = std::get_if<float>(&first.value)) && (s = std::get_if<float>(&second.value))){
+		if((f = std::get_if<float>(&arguments[0].value)) && (s = std::get_if<float>(&arguments[1].value))){
 			if(*f>*s){
 				std::swap(f,s);
 			}
 			return Value{.value = std::fmod(*s,*f)};
+		}
+		return {};
+	}
+};
+
+struct Square
+{
+	inline static Operations::Defined<Square> info;
+	std::string symbol = "■", name = "square";
+	int arity = 1;
+	
+	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	{
+		const float *f;
+		if(f = std::get_if<float>(&arguments[0].value)){
+			return Value{.value = *f * *f};
 		}
 		return {};
 	}
