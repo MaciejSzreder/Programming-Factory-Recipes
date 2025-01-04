@@ -170,3 +170,28 @@ struct Cutter
 		return {.value = Value::String(1,(*string)[*index])};
 	}
 };
+
+struct IndexOf
+{
+	inline static Operations::Defined<IndexOf> info;
+	std::string symbol = "─O", name = "index";
+	int arity = 2;
+	
+	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	{
+		auto first = arguments[0].get<Value::String>();
+		auto second = arguments[1].get<Value::String>();
+
+		if(!first || !second){
+			return {};
+		}
+
+		if(first->size()<second->size()){
+			std::swap(first,second);
+		}
+		
+		using Integer = long long;
+		static_assert(sizeof(Integer)==sizeof(Value::String::size_type));
+		return {.value = (float)(Integer)first->find(*second)};
+	}
+};
