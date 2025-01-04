@@ -140,3 +140,33 @@ struct Square
 		return {};
 	}
 };
+
+struct Cutter
+{
+	inline static Operations::Defined<Cutter> info;
+	std::string symbol = "[]", name = "cutter";
+	int arity = 2;
+	
+	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	{
+		auto index = arguments[0].get<Value::Number>();
+		if(auto i = arguments[1].get<Value::Number>()){
+			index = i;
+		}
+
+		auto string = arguments[0].get<Value::String>();
+		if(auto s = arguments[1].get<Value::String>()){
+			string = s;
+		}
+
+		if(!index || !string){
+			return {};
+		}
+
+		if(string->size()-1 < *index || *index < 0 || std::floor(*index)!=*index || std::isnan(*index)){
+			return {.value = ""};
+		}
+
+		return {.value = Value::String(1,(*string)[*index])};
+	}
+};

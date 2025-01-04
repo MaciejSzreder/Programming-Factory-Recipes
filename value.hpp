@@ -2,6 +2,7 @@
 
 #include<variant>
 #include<string>
+#include<optional>
 
 namespace{
 	static std::string stringify(std::monostate)
@@ -48,6 +49,15 @@ struct Value
 	T as() const
 	{
 		return std::get<T>(value);
+	}
+
+	template<typename T>
+	std::optional<T> get() const
+	{
+		if(auto v = std::get_if<T>(&value)){
+			return *v;
+		}
+		return {};
 	}
 
 	struct Order
