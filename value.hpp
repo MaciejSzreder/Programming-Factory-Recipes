@@ -4,7 +4,7 @@
 #include<string>
 
 namespace{
-	static std::string stringify(std::nullptr_t)
+	static std::string stringify(std::monostate)
 	{
 		return "no value";
 	}
@@ -23,7 +23,10 @@ namespace{
 
 struct Value
 {
-	std::variant<std::nullptr_t, std::string, float> value;
+	using None = std::monostate;
+	using String = std::string;
+	using Number = float;
+	std::variant<None, String, Number> value;
 
 	std::string stringify() const
 	{
@@ -32,6 +35,55 @@ struct Value
 
 	bool empty()
 	{
-		return std::holds_alternative<std::nullptr_t>(value);
+		return std::holds_alternative<std::monostate>(value);
 	}
+
+	template<typename T>
+	bool holds() const
+	{
+		return std::holds_alternative<T>(value);
+	}
+
+	template<typename T>
+	T as() const
+	{
+		return std::get<T>(value);
+	}
+
+	struct Order
+	{
+		bool bit_orderer(Number f,Number s)
+		{
+			using Integer = unsigned int;
+			static_assert(sizeof(Integer) == sizeof(Number));
+			return reinterpret_cast<Integer&>(f)<reinterpret_cast<Integer&>(s);
+		}
+
+		bool operator()(const Value &first, const Value &second)
+		{
+			if(first.holds<Number>() && second.holds<Number>()){
+				return bit_orderer(first.as<Number>(),second.as<Number>());
+			}
+			return first.value<second.value;
+		}
+	};
+
+	struct Equality
+	{
+		
+		bool bit_equality(Number f,Number s)
+		{
+			using Integer = unsigned int;
+			static_assert(sizeof(Integer) == sizeof(Number));
+			return reinterpret_cast<Integer&>(f)==reinterpret_cast<Integer&>(s);
+		}
+
+		bool operator()(const Value &first, const Value &second)
+		{
+			if(first.holds<Number>() && second.holds<Number>()){
+				return bit_equality(first.as<Number>(),second.as<Number>());
+			}
+			return first.value==second.value;
+		}
+	};
 };

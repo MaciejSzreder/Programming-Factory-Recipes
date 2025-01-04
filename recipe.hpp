@@ -2,6 +2,7 @@
 
 #include<vector>
 #include<span>
+#include<algorithm>
 
 #include"value.hpp"
 #include"operations.hpp"
@@ -65,4 +66,6 @@ void more_recipes(Recipes &recipes, const OperationList &operations)
 			throw "Arity " + std::to_string(operation.arity) + " is not implemented";
 		}
 	}
+	std::ranges::stable_sort(recipes,Value::Order(),&Recipe::value);
+	recipes.erase(std::ranges::unique(recipes,Value::Equality(),&Recipe::value).begin(),recipes.end());
 }
