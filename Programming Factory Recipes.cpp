@@ -4,5 +4,9 @@
 
 int main()
 {
-	Interpreter(std::cin, std::cout).run();
+	try{
+		Interpreter(std::cin, std::cout).run();
+	}catch(char const *message){
+		std::cout<<message;
+	}
 }
