@@ -4,6 +4,7 @@
 #include<functional>
 #include<vector>
 #include<optional>
+#include<format>
 
 #include"value.hpp"
 
@@ -77,32 +78,60 @@ struct Add
 	std::string symbol = "+", name = "add";
 	int arity = 2;
 
+	static std::string to_string(const Value::Number &number)
+	{
+		if(std::isinf(number)){
+			if(number<0){
+				return "-Infinity";
+			}
+			return "Infinity";
+		}
+		if(std::isnan(number)){
+			return "NaN";
+		}
+		
+		if(number <= -1e21 || number >= 1e21){
+			return std::format("{:.17}",number);
+		}
+
+		if(-0.5 < number && number < 0.5){
+			return "0";
+		}
+
+		if(number != ceil(number)){
+			return std::format("{:.2f}",number);
+		}
+
+		return std::format("{}", number);
+	}
+
 	static Value eval(const Operations::Operation::ArgumentList& arguments)
 	{
-		const Value &first = arguments[0], &second = arguments[1];
-		{
-			const float *f, *s;
-			if((f = std::get_if<float>(&first.value)) && (s = std::get_if<float>(&second.value))){
-				return Value{.value = *f+*s};
-			}
+		if(auto first = arguments[0].get<Value::Number>(), second = arguments[1].get<Value::Number>(); first && second){
+			return *first + *second;
 		}
-		{
-			const std::string *f,*s;
-			if((f = std::get_if<std::string>(&first.value)) && (s = std::get_if<std::string>(&second.value))){
-				return Value{.value = *f+*s};
+
+		if(auto first = arguments[0].get<Value::String>(), second = arguments[1].get<Value::String>(); first && second){
+			if(first < second){
+				return *second + *first;
 			}
+			return *first + *second;
 		}
-		{
-			const std::string *text;
-			const float *number;
-			if((text = std::get_if<std::string>(&first.value)) && (number = std::get_if<float>(&second.value))){
-				return Value{.value = *text+std::to_string(*number)};
-			}
-			if((number = std::get_if<float>(&first.value)) && (text = std::get_if<std::string>(&second.value))){
-				return Value{.value = *text+std::to_string(*number)};
-			}
+
+		auto string = arguments[0].get<Value::String>();
+		if(!string){
+			string = arguments[1].get<Value::String>();
 		}
-		throw "unexpected value type " + std::to_string(first.value.index()) + " and " + std::to_string(second.value.index());
+		auto number = arguments[0].get<Value::Number>();
+		if(!number){
+			number = arguments[1].get<Value::Number>();
+		}
+
+		if(!string || !number){
+			throw "unexpected value type " + std::to_string(arguments[0].value.index()) + " and " + std::to_string(arguments[0].value.index());
+		}
+
+		return *string + to_string(*number);
 	}
 };
 
@@ -119,7 +148,7 @@ struct Remainder
 			if(*f>*s){
 				std::swap(f,s);
 			}
-			return Value{.value = std::fmod(*s,*f)};
+			return std::fmod(*s,*f);
 		}
 		return {};
 	}
@@ -135,7 +164,7 @@ struct Square
 	{
 		const float *f;
 		if(f = std::get_if<float>(&arguments[0].value)){
-			return Value{.value = *f * *f};
+			return *f * *f;
 		}
 		return {};
 	}
@@ -164,10 +193,10 @@ struct Cutter
 		}
 
 		if(string->size() < *index+1 || *index < 0 || std::floor(*index)!=*index || std::isnan(*index)){
-			return {.value = ""};
+			return "";
 		}
 
-		return {.value = Value::String(1,(*string)[*index])};
+		return Value::String(1,(*string)[*index]);
 	}
 };
 
@@ -192,7 +221,7 @@ struct IndexOf
 		
 		using Integer = long long;
 		static_assert(sizeof(Integer)==sizeof(Value::String::size_type));
-		return {.value = (float)(Integer)first->find(*second)};
+		return (float)(Integer)first->find(*second);
 	}
 };
 
@@ -206,13 +235,13 @@ struct Ascii
 	{
 		if(auto string = arguments[0].get<Value::String>()){
 			if(string->size()<1){
-				return {.value = -std::nanf(nullptr)};
+				return std::nanf(nullptr);
 			}
-			return {.value = (float)(*string)[0]};
+			return (float)(*string)[0];
 		}
 		if(auto number = arguments[0].get<Value::Number>()){
 			char character = (char)*number;
-			return {.value = Value::String(character < 32 ? 0 : 1,character)};
+			return Value::String(character < 32 ? 0 : 1,character);
 		}
 
 		throw "unexpected value type " + std::to_string(arguments[0].value.index());

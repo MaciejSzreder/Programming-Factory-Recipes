@@ -27,7 +27,12 @@ struct Value
 	using None = std::monostate;
 	using String = std::string;
 	using Number = float;
-	std::variant<None, String, Number> value;
+	std::variant<None, Number, String> value;
+
+	template<class V>
+	Value(const V &value):value(value){}
+
+	Value(){}
 
 	std::string stringify() const
 	{
