@@ -4,6 +4,10 @@
 #include<charconv>
 
 #include"recipe.hpp"
+#include"parser.hpp"
+
+using namespace parser;
+using namespace parser::literals;
 
 struct Interpreter
 {
@@ -26,9 +30,9 @@ struct Interpreter
 		Command command;
 		std::string token;
 		in >> token;
-		if(token == "add"){
+		if("add"_k.parse(token)){
 			command.type = Command::add;
-		}else if(token == "find"){
+		}else if("find"_k.parse(token)){
 			command.type = Command::find;
 		}else{
 			throw "unknown command";
