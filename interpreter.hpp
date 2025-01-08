@@ -40,11 +40,18 @@ struct Interpreter
 		}
 
 		in >> token;
-		float number;
-		if(std::from_chars(token.data(),token.data()+token.size(),number).ec == std::errc()){
+		auto number = "-?[0-9]+([.][0-9]+)?([eE]-?[0-9]+)?"_re;
+		auto string = "'([^']|\\')+'"_re;
+		auto identifier = "[^ \t\n\r]+"_re;
+		auto argument = (number|string|identifier).parse(token);
+		if(argument == number){
+			float number;
+			std::from_chars(token.data(),token.data()+token.size(),number);
 			command.argument.value = number;
-		}else{
+		}else if(argument == string || argument == identifier){
 			command.argument.value = token;
+		}else{
+			throw "unexpected token format";
 		}
 		return command;
 	}
