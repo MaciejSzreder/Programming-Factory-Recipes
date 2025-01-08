@@ -30,9 +30,10 @@ struct Interpreter
 		Command command;
 		std::string token;
 		in >> token;
-		if("add"_k.parse(token)){
+		auto opcode = ("add"_k|"find"_k).parse(token);
+		if(opcode == "add"){
 			command.type = Command::add;
-		}else if("find"_k.parse(token)){
+		}else if(opcode == "find"){
 			command.type = Command::find;
 		}else{
 			throw "unknown command";
