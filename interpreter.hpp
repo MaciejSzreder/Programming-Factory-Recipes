@@ -28,9 +28,15 @@ struct Interpreter
 	Command parse_command(std::istream& in)
 	{
 		Command command;
-		std::string token;
-		in >> token;
-		auto opcode = ("add"_k|"find"_k).parse(token);
+		std::string line;
+		std::getline(in,line);
+		
+		auto number = "-?[0-9]+([.][0-9]+)?([eE]-?[0-9]+)?"_re;
+		auto string = "'([^']|\\')+'"_re;
+		auto identifier = "[^ \t\n\r]+"_re;
+
+		auto tokens = (("add"_k|"find"_k)+(number|string|identifier)).parse(line);
+		Parsed opcode = tokens[0], argument = tokens[1];
 		if(opcode == "add"){
 			command.type = Command::add;
 		}else if(opcode == "find"){
@@ -38,18 +44,13 @@ struct Interpreter
 		}else{
 			throw "unknown command";
 		}
-
-		in >> token;
-		auto number = "-?[0-9]+([.][0-9]+)?([eE]-?[0-9]+)?"_re;
-		auto string = "'([^']|\\')+'"_re;
-		auto identifier = "[^ \t\n\r]+"_re;
-		auto argument = (number|string|identifier).parse(token);
+		
 		if(argument == number){
 			float number;
-			std::from_chars(token.data(),token.data()+token.size(),number);
+			std::from_chars(argument.match.data(),argument.match.data()+argument.match.size(),number);
 			command.argument.value = number;
 		}else if(argument == string || argument == identifier){
-			command.argument.value = token;
+			command.argument.value = argument.match;
 		}else{
 			throw "unexpected token format";
 		}

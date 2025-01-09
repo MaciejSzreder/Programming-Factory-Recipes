@@ -120,6 +120,36 @@ auto operator|(auto first, auto second)
 	return Alternative(first,second);
 }
 
+template<class Expression1, class Expression2>
+struct Sequence: Parser<Sequence<Expression1, Expression2>>
+{
+	using ParsedList = std::vector<Parsed>;
+
+	Expression1 first;
+	Expression2 second;
+
+	Sequence(Expression1 first, Expression2 second): first(first), second(second){}
+
+	ParsedList consume(auto &begin, auto end)
+	{
+		auto data1 = first.consume(begin,end);
+		if(!data1){
+			return {};
+		}
+		RegularExpression("[ \t\n\r]*").consume(begin,end);
+		auto data2 = second.consume(begin,end);
+		if(!data2){
+			return {};
+		}
+		return {data1,data2};
+	}
+};
+
+auto operator+(auto first, auto second)
+{
+	return Sequence(first,second);
+}
+
 namespace literals
 {
 
