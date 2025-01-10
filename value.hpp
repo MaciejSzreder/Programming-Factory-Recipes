@@ -34,6 +34,11 @@ struct Value
 
 	Value(){}
 
+	bool operator==(const Value &other) const
+	{
+		return value == other.value;
+	}
+
 	std::string stringify() const
 	{
 		return std::visit([](auto value){ return ::stringify(value);},value);

@@ -5,6 +5,7 @@
 
 #include"recipe.hpp"
 #include"parser.hpp"
+#include"searcher.hpp"
 
 using namespace parser;
 using namespace parser::literals;
@@ -22,6 +23,8 @@ struct Interpreter
 
 	std::istream &in;
 	std::ostream &out;
+
+	Searcher searcher;
 
 	Interpreter(std::istream& in, std::ostream& out):in(in),out(out){}
 
@@ -59,28 +62,14 @@ struct Interpreter
 
 	void execute_command(Command &command, std::ostream& out)
 	{
-		static Recipes creatable;
-		static OperationList operations;
-
 		if(command.type == Command::add){
 			if(auto operation = Operations::operation(command.argument.stringify())){
-				operations.push_back(*operation);
+				searcher.add(*operation);
 			}else{
-				creatable.push_back(Recipe{.value=command.argument});
+				searcher.add(command.argument);
 			}
 		}else if(command.type == Command::find){
-			for(;;){
-				auto value = std::ranges::find_if(
-					creatable,[=](const Recipe& recipe){
-						return recipe.value.stringify() == command.argument.stringify();
-					}
-				);
-				if(value != creatable.end()){
-					out << value->getShortRecipe() << '\n';
-					return;
-				}
-				more_recipes(creatable, operations);
-			}
+			out << searcher.find(command.argument).getShortRecipe() << '\n';
 		}else{
 			throw "not implemented command";
 		}
