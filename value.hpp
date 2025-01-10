@@ -3,6 +3,10 @@
 #include<variant>
 #include<string>
 #include<optional>
+#include<sstream>
+#include<iomanip>
+#include<format>
+#include<cmath>
 
 namespace{
 	static std::string stringify(std::monostate)
@@ -10,15 +14,28 @@ namespace{
 		return "no value";
 	}
 
-	static std::string stringify(std::string value)
+	static std::string stringify(std::string string)
 	{
-		return value;
+		return (std::ostringstream()<<std::quoted(string)).str();
 	}
 
-	template<typename T>
-	static std::string stringify(T value)
+	static std::string stringify(float number)
 	{
-		return std::to_string(value);
+		if(std::isinf(number)){
+			if(number<0){
+				return "-Infinity";
+			}
+			return "Infinity";
+		}
+		if(std::isnan(number)){
+			return "NaN";
+		}
+
+		if(number != ceil(number)){
+			return std::format("{:.0f}",number);
+		}
+
+		return std::format("{}", number);
 	}
 }
 
