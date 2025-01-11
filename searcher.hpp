@@ -64,7 +64,7 @@ struct Searcher
 		for(;;){
 			auto recipe = std::ranges::find_if(
 				creatable,[=](const Recipe& recipe){
-					return recipe.value == value;
+					return recipe.value == value || recipe.value!=recipe.value && value!=value;
 				}
 			);
 			if(recipe != creatable.end()){
