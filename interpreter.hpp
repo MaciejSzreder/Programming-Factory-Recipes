@@ -18,7 +18,7 @@ struct Interpreter
 			add,
 			find
 		} type;
-		Value argument;
+		std::variant<Value,std::string> argument;
 	};
 
 	std::istream &in;
@@ -51,9 +51,11 @@ struct Interpreter
 		if(argument == number){
 			float number;
 			std::from_chars(argument.match.data(),argument.match.data()+argument.match.size(),number);
-			command.argument.value = number;
-		}else if(argument == string || argument == identifier){
-			command.argument.value = argument.match;
+			command.argument = Value(number);
+		}else if(argument == string){
+			command.argument = Value(argument.match);
+		}else if(argument == identifier){
+			command.argument = argument.match;
 		}else{
 			throw "unexpected token format";
 		}
@@ -63,13 +65,23 @@ struct Interpreter
 	void execute_command(Command &command, std::ostream& out)
 	{
 		if(command.type == Command::add){
-			if(auto operation = Operations::operation(command.argument.stringify())){
-				searcher.add(*operation);
+			if(auto identifier = std::get_if<std::string>(&command.argument)){
+				if(auto operation = Operations::operation(*identifier)){
+					searcher.add(*operation);
+				}else{
+					searcher.add(*identifier);
+				}
 			}else{
-				searcher.add(command.argument);
+				searcher.add(std::get<Value>(command.argument));
 			}
 		}else if(command.type == Command::find){
-			out << searcher.find(command.argument).getShortRecipe() << '\n';
+			Value argument;
+			if(auto identifier = std::get_if<std::string>(&command.argument)){
+				argument = *identifier;
+			}else{
+				argument = std::get<Value>(command.argument);
+			}
+			out << searcher.find(argument).getShortRecipe() << '\n';
 		}else{
 			throw "not implemented command";
 		}
