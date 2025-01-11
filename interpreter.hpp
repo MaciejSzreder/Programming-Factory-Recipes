@@ -35,10 +35,10 @@ struct Interpreter
 		std::getline(in,line);
 		
 		auto number = "-?[0-9]+([.][0-9]+)?([eE]-?[0-9]+)?"_re;
-		auto string = "'([^']|\\')+'"_re;
-		auto identifier = "[^ \t\n\r]+"_re;
+		auto string = Quoted() | Quoted('\'');
+		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
 
-		auto tokens = (("add"_k|"find"_k)+(number|string|identifier)).parse(line);
+		auto tokens = (("add"_k|"find"_k)+(number|identifier|string)).parse(line);
 		Parsed opcode = tokens[0], argument = tokens[1];
 		if(opcode == "add"){
 			command.type = Command::add;

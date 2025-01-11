@@ -3,6 +3,7 @@
 #include<string>
 #include<regex>
 #include<cstdint>
+#include<iomanip>
 
 namespace parser
 {
@@ -35,8 +36,8 @@ struct Parsed
 
 	Parsed():succeed(false),match(""),parserId(0){}
 
-	Parsed(std::string match, const ParserLeaf &parser):
-		succeed(true),
+	Parsed(std::string match, const ParserLeaf &parser, bool succeed = true):
+		succeed(succeed),
 		match(match),
 		parserId(parser.id)
 	{}
@@ -121,6 +122,12 @@ auto operator|(auto first, auto second)
 }
 
 template<class Expression1, class Expression2>
+bool operator==(Parsed parsed, Alternative<Expression1,Expression2> alternative)
+{
+	return parsed == alternative.first || parsed == alternative.second;
+}
+
+template<class Expression1, class Expression2>
 struct Sequence: Parser<Sequence<Expression1, Expression2>>
 {
 	using ParsedList = std::vector<Parsed>;
@@ -149,6 +156,23 @@ auto operator+(auto first, auto second)
 {
 	return Sequence(first,second);
 }
+
+struct Quoted: Parser<Quoted>, ParserLeaf
+{
+	char quote, escape;
+
+	Quoted(char quote = '"', char escape = '\\'): quote(quote), escape(escape) {}
+
+	Parsed consume(auto &begin, auto end)
+	{
+		std::string string;
+		std::istringstream stream(std::string(begin,end));
+		stream>>std::quoted(string, quote, escape);
+		bool succeed = stream.good();
+		begin += stream.tellg();
+		return {string, *this, succeed};
+	}
+};
 
 namespace literals
 {
