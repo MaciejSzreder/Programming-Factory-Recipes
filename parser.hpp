@@ -4,6 +4,7 @@
 #include<regex>
 #include<cstdint>
 #include<iomanip>
+#include<any>
 
 namespace parser
 {
@@ -33,12 +34,21 @@ struct Parsed
 	bool succeed;
 	std::string match;
 	std::intptr_t parserId;
+	std::any value;
 
 	Parsed():succeed(false),match(""),parserId(0){}
 
 	Parsed(std::string match, const ParserLeaf &parser, bool succeed = true):
 		succeed(succeed),
 		match(match),
+		parserId(parser.id)
+	{}
+
+	template<typename T>
+	Parsed(std::string match, const ParserLeaf &parser, T value, bool succeed = true):
+		succeed(succeed),
+		match(match),
+		value(value),
 		parserId(parser.id)
 	{}
 
@@ -171,6 +181,22 @@ struct Quoted: Parser<Quoted>, ParserLeaf
 		bool succeed = stream.good();
 		begin += stream.tellg();
 		return {string, *this, succeed};
+	}
+};
+
+template<typename T>
+struct FromChars: Parser<FromChars<T>>, ParserLeaf
+{
+
+	Parsed consume(auto &begin, auto end)
+	{
+		T value;
+		std::string string(begin,end);
+		auto [parsedEnd, error] = std::from_chars(string.data(), string.data()+string.size(), value);
+		bool succeed = error == std::errc();
+		std::string parsed((const char*)string.data(),parsedEnd);
+		begin += parsedEnd - string.data();
+		return {parsed, *this, value, succeed};
 	}
 };
 

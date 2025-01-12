@@ -34,7 +34,7 @@ struct Interpreter
 		std::string line;
 		std::getline(in,line);
 		
-		auto number = "-?[0-9]+([.][0-9]+)?([eE]-?[0-9]+)?"_re;
+		auto number = FromChars<float>();
 		auto string = Quoted() | Quoted('\'');
 		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
 
@@ -49,9 +49,7 @@ struct Interpreter
 		}
 		
 		if(argument == number){
-			float number;
-			std::from_chars(argument.match.data(),argument.match.data()+argument.match.size(),number);
-			command.argument = Value(number);
+			command.argument = Value(std::any_cast<float>(argument.value));
 		}else if(argument == string){
 			command.argument = Value(argument.match);
 		}else if(argument == identifier){
