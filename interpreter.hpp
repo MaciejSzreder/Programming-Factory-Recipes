@@ -38,7 +38,7 @@ struct Interpreter
 		auto string = Quoted() | Quoted('\'');
 		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
 
-		auto tokens = (("add"_k|"find"_k)+(number|"NaN"_k|"Infinity"_k|"-Infinity"_k|identifier|string)).parse(line);
+		auto tokens = ((Keyword::keywords({"add","find"}))+(number|"NaN"_k|"Infinity"_k|"-Infinity"_k|identifier|string)).parse(line);
 		Parsed opcode = tokens[0], argument = tokens[1];
 		if(opcode == "add"){
 			command.type = Command::add;

@@ -68,11 +68,57 @@ struct Parsed
 	}
 };
 
+template<class Expression1, class Expression2>
+struct Alternative: Parser<Alternative<Expression1,Expression2>>
+{
+	Expression1 first;
+	Expression2 second;
+
+	Alternative(Expression1 first, Expression2 second): first(first),second(second){}
+
+	Parsed consume(auto &begin, auto end)
+	{
+		auto backup = begin;
+		auto data = first.consume(begin,end);
+		if(data){
+			return data;
+		}
+		begin = backup;
+		return second.consume(begin,end);
+	}
+};
+
+template<class _Parser>
+struct Alternatives: Parser<Alternatives<_Parser>>
+{
+	std::vector<_Parser> expressions;
+
+	Alternatives(auto begin, auto end): expressions(begin,end){}
+
+	Parsed consume(auto &begin, auto end)
+	{
+		auto backup = begin;
+		for(auto &expression:expressions){
+			if(auto data = expression.consume(begin,end)){
+				return data;
+			}
+			begin = backup;
+		}
+		return {};
+	}
+};
+
 struct Keyword: Parser<Keyword>, ParserLeaf
 {
 	std::string keyword;
 
 	Keyword(std::string keyword): keyword(keyword){}
+
+	template<class Collection = std::initializer_list<std::string>>
+	static auto keywords(Collection collection)
+	{
+		return Alternatives<Keyword>(collection.begin(),collection.end());
+	}
 
 	Parsed consume(auto &begin, auto end)
 	{
@@ -103,26 +149,6 @@ struct RegularExpression: Parser<RegularExpression>, ParserLeaf
 			return {match.str(),*this};
 		}
 		return {};
-	}
-};
-
-template<class Expression1, class Expression2>
-struct Alternative: Parser<Alternative<Expression1,Expression2>>
-{
-	Expression1 first;
-	Expression2 second;
-
-	Alternative(Expression1 first, Expression2 second): first(first),second(second){}
-
-	Parsed consume(auto &begin, auto end)
-	{
-		auto backup = begin;
-		auto data = first.consume(begin,end);
-		if(data){
-			return data;
-		}
-		begin = backup;
-		return second.consume(begin,end);
 	}
 };
 
