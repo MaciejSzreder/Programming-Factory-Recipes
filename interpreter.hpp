@@ -38,7 +38,7 @@ struct Interpreter
 		auto string = Quoted() | Quoted('\'');
 		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
 
-		auto tokens = ((Keyword::keywords({"add","find"}))+(number|"NaN"_k|"Infinity"_k|"-Infinity"_k|identifier|string)).parse(line);
+		auto tokens = ((Keyword::keywords({"add","find"}))+(number|identifier|string)).parse(line);
 		Parsed opcode = tokens[0], argument = tokens[1];
 		if(opcode == "add"){
 			command.type = Command::add;
@@ -54,12 +54,6 @@ struct Interpreter
 			command.argument = Value(argument.match);
 		}else if(argument == identifier){
 			command.argument = argument.match;
-		}else if(argument == "NaN"){
-			command.argument = Value(std::nanf(""));
-		}else if(argument == "Infinity"){
-			command.argument = Value(std::numeric_limits<float>::infinity());
-		}else if(argument == "-Infinity"){
-			command.argument = Value(-std::numeric_limits<float>::infinity());
 		}else{
 			throw "unexpected token format";
 		}
