@@ -64,10 +64,10 @@ struct Interpreter
 	{
 		if(command.type == Command::add){
 			if(auto identifier = std::get_if<std::string>(&command.argument)){
-				if(auto operation = Operations::operation(*identifier)){
+				if(auto operation = Operations::find(*identifier)){
 					searcher.add(*operation);
 				}else{
-					searcher.add(*identifier);
+					searcher.add(Value(*identifier));
 				}
 			}else{
 				searcher.add(std::get<Value>(command.argument));

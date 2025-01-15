@@ -12,14 +12,14 @@ struct Searcher
 		creatable.push_back({.value = value});
 	}
 
-	void add(Operations::Operation operation)
+	void add(Operations::Definition operation)
 	{
 		operations.push_back(operation);
 	}
 	
 	void moreRecipes()
 	{
-		const OperationList &operationList = operations.empty() ? Operations::operations : operations;
+		const OperationList &operationList = operations.empty() ? Operations::definitions : operations;
 		try{
 			creatable.reserve(creatable.size()+creatable.size()*creatable.size()*operationList.size());
 		}catch(std::bad_alloc&){

@@ -7,70 +7,36 @@
 #include<format>
 
 #include"value.hpp"
+#include"register.hpp"
 
-
-struct Operations
-{
-	struct Operation
-	{
-		using ArgumentList = std::vector<Value>;
-		using function = std::function<Value(const ArgumentList&)>;
-		int id;
-		std::string name,symbol;
-		int arity;
-		function eval;
-	};
-
-	inline static std::vector<Operation> operations;
-
-	static int size()
-	{
-		return operations.size();
-	}
-
-	static Operation operation(int id)
-	{
-		return operations[id];
-	}
-
-	static std::optional<Operation> operation(const std::string& name)
-	{
-		auto operation = std::ranges::find(operations,name,&Operation::name);
-		if(operation == operations.end()){
-			return {};
-		}
-		return *operation;
-	}
-
-	static Operation define(Operation operation)
-	{
-		operation.id = (int)operations.size();
-		operations.push_back(operation);
-		return operations.back();
-	}
-	static Operation define(auto obj)
-	{
-		return define({
-			.name = obj.name,
-			.symbol = obj.symbol,
-			.arity = obj.arity,
-			.eval = decltype(obj)::eval
-		});
-	}
-	template<class O>
-	static Operation define()
-	{
-		return define(O());
-	}
-
-	template<class O>
-	struct Defined:Operation
-	{
-		Defined():Operation(define<O>()){}
-	};
+struct Operations:Register<Operations>{
+	static std::optional<Operations::Definition> find(std::string name);
 };
 
-using OperationList = std::vector<Operations::Operation>;
+template<>
+struct Register<Operations>::Definition
+{
+	using ArgumentList = std::vector<Value>;
+	using function = std::function<Value(const ArgumentList&)>;
+	int id;
+	std::string name,symbol;
+	int arity;
+	function eval;
+
+	Definition(auto definition):
+		name(definition.name),
+		symbol(definition.symbol),
+		arity(definition.arity),
+		eval(definition.eval)
+	{}
+};
+
+std::optional<Operations::Definition> Operations::find(std::string name)
+{
+	return Register<Operations>::find(name, &Register<Operations>::Definition::name);
+}
+
+using OperationList = std::vector<Operations::Definition>;
 
 struct Add
 {
@@ -105,7 +71,7 @@ struct Add
 		return std::format("{}", number);
 	}
 
-	static Value eval(const Operations::Operation::ArgumentList& arguments)
+	static Value eval(const Operations::Definition::ArgumentList& arguments)
 	{
 		if(auto first = arguments[0].get<Value::Number>(), second = arguments[1].get<Value::Number>(); first && second){
 			return *first + *second;
@@ -141,7 +107,7 @@ struct Remainder
 	std::string symbol = "%", name = "reminder";
 	int arity = 2;
 
-	static Value eval(const Operations::Operation::ArgumentList& arguments)
+	static Value eval(const Operations::Definition::ArgumentList& arguments)
 	{
 		const float *f, *s;
 		if((f = std::get_if<float>(&arguments[0].value)) && (s = std::get_if<float>(&arguments[1].value))){
@@ -160,7 +126,7 @@ struct Square
 	std::string symbol = "■", name = "square";
 	int arity = 1;
 	
-	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	static Value eval(const Operations::Definition::ArgumentList &arguments)
 	{
 		const float *f;
 		if(f = std::get_if<float>(&arguments[0].value)){
@@ -176,7 +142,7 @@ struct Cutter
 	std::string symbol = "[]", name = "cutter";
 	int arity = 2;
 	
-	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	static Value eval(const Operations::Definition::ArgumentList &arguments)
 	{
 		auto index = arguments[0].get<Value::Number>();
 		if(auto i = arguments[1].get<Value::Number>()){
@@ -206,7 +172,7 @@ struct IndexOf
 	std::string symbol = "─O", name = "index";
 	int arity = 2;
 	
-	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	static Value eval(const Operations::Definition::ArgumentList &arguments)
 	{
 		auto first = arguments[0].get<Value::String>();
 		auto second = arguments[1].get<Value::String>();
@@ -231,7 +197,7 @@ struct Ascii
 	std::string symbol = "ASCII", name = "ASCII";
 	int arity = 1;
 	
-	static Value eval(const Operations::Operation::ArgumentList &arguments)
+	static Value eval(const Operations::Definition::ArgumentList &arguments)
 	{
 		if(auto string = arguments[0].get<Value::String>()){
 			if(string->size()<1){

@@ -10,7 +10,7 @@
 struct Recipe
 {
 	Value value;
-	const Operations::Operation *operation;
+	const Operations::Definition *operation;
 	std::vector<Value> recipients;
 	std::string getShortExpression()
 	{
