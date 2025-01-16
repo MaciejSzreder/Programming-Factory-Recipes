@@ -20,6 +20,9 @@ struct Searcher
 	void moreRecipes()
 	{
 		const OperationList &operationList = operations.empty() ? Operations::definitions : operations;
+		if(creatable.size()==0){
+			add(Value(Value::Number(0)));
+		}
 		try{
 			creatable.reserve(creatable.size()+creatable.size()*creatable.size()*operationList.size());
 		}catch(std::bad_alloc&){
