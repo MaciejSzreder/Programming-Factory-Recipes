@@ -3,9 +3,11 @@
 #include<string>
 #include<charconv>
 
+#include"utils.hpp"
 #include"recipe.hpp"
 #include"parser.hpp"
 #include"searcher.hpp"
+#include"commands.hpp"
 
 using namespace parser;
 using namespace parser::literals;
@@ -14,10 +16,7 @@ struct Interpreter
 {
 	struct Command
 	{
-		enum{
-			add,
-			find
-		} type;
+		std::string type;
 		std::variant<Value,std::string> argument;
 	};
 
@@ -38,15 +37,10 @@ struct Interpreter
 		auto string = Quoted() | Quoted('\'');
 		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
 
-		auto tokens = ((Keyword::keywords({"add","find"}))+(number|identifier|string)).parse(line);
-		Parsed opcode = tokens[0], argument = tokens[1];
-		if(opcode == "add"){
-			command.type = Command::add;
-		}else if(opcode == "find"){
-			command.type = Command::find;
-		}else{
-			throw "unknown command";
-		}
+		auto commands = utils::map(commands::Commands::definitions, [](auto definition){return definition.name;});
+		auto tokens = (Keyword::keywords(commands)+(number|identifier|string)).parse(line);
+		Parsed argument = tokens[1];
+		command.type = tokens[0].match;
 		
 		if(argument == number){
 			command.argument = Value(std::any_cast<float>(argument.value));
@@ -62,27 +56,7 @@ struct Interpreter
 
 	void execute_command(Command &command, std::ostream& out)
 	{
-		if(command.type == Command::add){
-			if(auto identifier = std::get_if<std::string>(&command.argument)){
-				if(auto operation = Operations::find(*identifier)){
-					searcher.add(*operation);
-				}else{
-					searcher.add(Value(*identifier));
-				}
-			}else{
-				searcher.add(std::get<Value>(command.argument));
-			}
-		}else if(command.type == Command::find){
-			Value argument;
-			if(auto identifier = std::get_if<std::string>(&command.argument)){
-				argument = *identifier;
-			}else{
-				argument = std::get<Value>(command.argument);
-			}
-			out << searcher.find(argument).getShortRecipe() << '\n';
-		}else{
-			throw "not implemented command";
-		}
+		commands::Commands::find(command.type)->execute(searcher,{command.argument});
 	}
 
 	void run()
