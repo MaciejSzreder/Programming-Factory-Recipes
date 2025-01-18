@@ -26,37 +26,41 @@ struct Searcher
 		try{
 			creatable.reserve(creatable.size()+creatable.size()*creatable.size()*operationList.size());
 		}catch(std::bad_alloc&){
-			throw "Not enough memory to create now recipes";
+			// this optimizes allocation, might not all will be used
 		}
-		std::span origin(creatable);
-		for(const auto &operation: operationList){
-			if(operation.arity == 1){
-				for(const auto &first: origin){
-					Value value = operation.eval({first.value});
-					if(!value.empty()){
-						creatable.push_back(Recipe{
-							.value = value,
-							.operation = &operation,
-							.recipients = {first.value}
-						});
-					}
-				}
-			} else if(operation.arity == 2){	
-				for(auto &first: origin){
-					for(const auto &second: origin){
-						Value value = operation.eval({first.value, second.value});
+		try{
+			std::span origin(creatable);
+			for(const auto &operation: operationList){
+				if(operation.arity == 1){
+					for(const auto &first: origin){
+						Value value = operation.eval({first.value});
 						if(!value.empty()){
 							creatable.push_back(Recipe{
 								.value = value,
 								.operation = &operation,
-								.recipients = {first.value,second.value}
+								.recipients = {first.value}
 							});
 						}
 					}
+				} else if(operation.arity == 2){	
+					for(auto &first: origin){
+						for(const auto &second: origin){
+							Value value = operation.eval({first.value, second.value});
+							if(!value.empty()){
+								creatable.push_back(Recipe{
+									.value = value,
+									.operation = &operation,
+									.recipients = {first.value,second.value}
+								});
+							}
+						}
+					}
+				} else {
+					throw "Arity " + std::to_string(operation.arity) + " is not implemented";
 				}
-			} else {
-				throw "Arity " + std::to_string(operation.arity) + " is not implemented";
 			}
+		}catch(std::bad_alloc){
+			throw "Not enough memory to create now recipes";
 		}
 		std::ranges::stable_sort(creatable,Value::Order(),&Recipe::value);
 		creatable.erase(std::ranges::unique(creatable,Value::Equality(),&Recipe::value).begin(),creatable.end());
