@@ -80,4 +80,10 @@ struct Searcher
 			moreRecipes();
 		}
 	}
+
+	void clear()
+	{
+		creatable.clear();
+		operations.clear();
+	}
 };

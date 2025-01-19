@@ -72,6 +72,9 @@ operation | short representation
 `index`   | `─O`
 `ASCII`   | `ASCII`
 
+#### Command `clear`
+`clear` takes no arguments, and removes all values and operations (due empty operations set is treated as set of all operations and empty value set as set containing value `0` it can look strange, but when you add any operation, others disappear, and if you add any value, the `0` disappears)
+
 ### tokens
 #### Number
 Number is sequence of digits,`-`(for negative values),`.`(for separation decimal part),`e`(for separation exponent). `INF`,`INFINITY` case insensitive represents infinity value and is number not identifier. `-INF`,`-INFINITY` case insensitive represents negative infinity value. `NAN` case insensitive represents not a number value.
