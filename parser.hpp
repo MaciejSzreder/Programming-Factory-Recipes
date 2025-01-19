@@ -68,6 +68,44 @@ struct Parsed
 	}
 };
 
+struct ParsedList
+{
+	bool succeed;
+	std::vector<Parsed> parsed;
+
+	ParsedList(std::vector<Parsed> parsed = {}): parsed(parsed),succeed(true) {}
+
+	void append(Parsed data)
+	{
+		parsed.push_back(data);
+	}
+
+	operator bool()
+	{
+		return succeed;
+	}
+};
+
+template<class First, class Second>
+struct ParsedTuple
+{
+	std::tuple<First,Second> parsed;
+
+	ParsedTuple(First first = {}, Second second = {}): parsed(first,second){}
+	
+	operator bool()
+	{
+		auto [first, second] = parsed;
+		return first && second;
+	}
+
+	template<int index>
+	auto get()
+	{
+		return std::get<index>(parsed);
+	}
+};
+
 template<class Expression1, class Expression2>
 struct Alternative: Parser<Alternative<Expression1,Expression2>>
 {
@@ -166,31 +204,58 @@ bool operator==(Parsed parsed, Alternative<Expression1,Expression2> alternative)
 template<class Expression1, class Expression2>
 struct Sequence: Parser<Sequence<Expression1, Expression2>>
 {
-	using ParsedList = std::vector<Parsed>;
 
 	Expression1 first;
 	Expression2 second;
 
 	Sequence(Expression1 first, Expression2 second): first(first), second(second){}
 
-	ParsedList consume(auto &begin, auto end)
+	auto consume(auto &begin, auto end)
 	{
+		using Parsed = decltype(ParsedTuple(first.consume(begin,end),second.consume(begin,end)));
+
 		auto data1 = first.consume(begin,end);
 		if(!data1){
-			return {};
+			return Parsed{};
 		}
 		RegularExpression("[ \t\n\r]*").consume(begin,end);
 		auto data2 = second.consume(begin,end);
 		if(!data2){
-			return {};
+			return Parsed{data1};
 		}
-		return {data1,data2};
+		return Parsed{data1,data2};
 	}
 };
 
 auto operator+(auto first, auto second)
 {
 	return Sequence(first,second);
+}
+
+template<class Expression>
+struct KleeneStar: Parser<KleeneStar<Expression>>
+{
+	Expression arg;
+
+	KleeneStar(Expression arg): arg(arg){}
+
+	ParsedList consume(auto &begin, auto end)
+	{
+		ParsedList parsed;
+		auto backup = begin;
+		while( auto data = arg.consume(begin,end) ){
+			parsed.append(data);
+			backup = begin;
+			RegularExpression("[ \t\n\r]*").consume(begin,end);
+		}
+		begin = backup;
+		return parsed;
+	}
+};
+
+auto operator*(auto arg)
+{
+	return KleeneStar(arg);
 }
 
 struct Quoted: Parser<Quoted>, ParserLeaf

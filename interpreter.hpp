@@ -17,7 +17,7 @@ struct Interpreter
 	struct Command
 	{
 		std::string type;
-		std::variant<Value,std::string> argument;
+		std::vector<std::variant<Value,std::string>> arguments;
 	};
 
 	std::istream &in;
@@ -36,27 +36,31 @@ struct Interpreter
 		auto number = FromChars<float>();
 		auto string = Quoted() | Quoted('\'');
 		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
-
 		auto commands = utils::map(commands::Commands::definitions, [](auto definition){return definition.name;});
-		auto tokens = (Keyword::keywords(commands)+(number|identifier|string)).parse(line);
-		Parsed argument = tokens[1];
-		command.type = tokens[0].match;
 		
-		if(argument == number){
-			command.argument = Value(std::any_cast<float>(argument.value));
-		}else if(argument == string){
-			command.argument = Value(argument.match);
-		}else if(argument == identifier){
-			command.argument = argument.match;
-		}else{
-			throw "unexpected token format";
-		}
+		auto tokens = (Keyword::keywords(commands)+*(number|identifier|string)).parse(line);
+
+		command.type = tokens.get<0>().match;
+		
+		auto arguments = utils::map(tokens.get<1>().parsed,[=](auto argument){
+			if(argument == number){
+				return Value(std::any_cast<float>(argument.value));
+			}else if(argument == string){
+				return Value(argument.match);
+			}else if(argument == identifier){
+				return Value(argument.match);
+			}else{
+				throw "unexpected token format";
+			}
+		});
+		command.arguments.assign(arguments.begin(),arguments.end());
+
 		return command;
 	}
 
 	void execute_command(Command &command, std::ostream& out)
 	{
-		commands::Commands::find(command.type)->execute(searcher,{command.argument});
+		commands::Commands::find(command.type)->execute(searcher,command.arguments);
 	}
 
 	void run()
