@@ -35,7 +35,7 @@ struct Interpreter
 		
 		auto number = FromChars<float>();
 		auto string = Quoted() | Quoted('\'');
-		auto identifier = "[^ \t\n\r'\"]+[^ \t\n\r]+"_re;
+		auto identifier = "[^ \t\n\r'\"][^ \t\n\r]*"_re;
 		auto commands = utils::map(commands::Commands::definitions, [](auto definition){return definition.name;});
 		
 		auto tokens = (Keyword::keywords(commands)+*(number|identifier|string)).parse(line);
