@@ -55,11 +55,16 @@ command names are case sensitive.
 - `square`
 - `cutter`
 - `index`
-- `ASCII`
+- `ASCII`  
+Names are case sensitive. 
 
-Names are case sensitive.  
 If you doesn't add any operation, program supposes you mean all operations.  
-If you doesn't add any value, program supposes you mean 0 (it is very easy value to receive: `─O str str` for the str being any string, `% num num` for num being most of numbers `─O ASCII num ASCII num` for num being any number).
+If you doesn't add any value, program supposes you mean 0 (it is very easy value to receive: `─O str str` for the str being any string, `% num num` for num being most of numbers, `─O ASCII num ASCII num` for num being any number).
+
+You can add few values and operations if you separate them with whitespaces. Eg.:
+```
+add 0.1 add ASCII index
+```
 
 #### Command `find`
 `find` starts searching recipe for given argument. If it finds any writes it in format `expected: operation values`, where `expected` is argument passed to `find`, `operation` is short representation for operations added by `add` and `values` is list space separated of values passed to operation.  
