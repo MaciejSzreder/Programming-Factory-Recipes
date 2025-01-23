@@ -77,6 +77,11 @@ operation | short representation
 `index`   | `─O`
 `ASCII`   | `ASCII`
 
+You can add few values if you separate them with whitespaces. Eg.:
+```
+find 1 "1" a
+```
+
 #### Command `clear`
 `clear` takes no arguments, and removes all values and operations (due empty operations set is treated as set of all operations and empty value set as set containing value `0` it can look strange, but when you add any operation, others disappear, and if you add any value, the `0` disappears)
 

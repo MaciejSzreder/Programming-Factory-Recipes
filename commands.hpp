@@ -69,13 +69,15 @@ struct Find
 	
 	static void execute(Searcher &searcher, const Commands::Definition::ArgumentList &arguments)
 	{
-		Value argument;
-		if(auto identifier = std::get_if<std::string>(&arguments[0])){
-			argument = *identifier;
-		}else{
-			argument = std::get<Value>(arguments[0]);
+		for(const auto &argument: arguments){
+			Value value;
+			if(auto identifier = std::get_if<std::string>(&argument)){
+				value = *identifier;
+			}else{
+				value = std::get<Value>(argument);
+			}
+			std::cout << searcher.find(value).getShortRecipe() << '\n';
 		}
-		std::cout << searcher.find(argument).getShortRecipe() << '\n';
 	}
 };
 
