@@ -109,8 +109,8 @@ struct Remainder
 
 	static Value eval(const Operations::Definition::ArgumentList& arguments)
 	{
-		const float *f, *s;
-		if((f = std::get_if<float>(&arguments[0].value)) && (s = std::get_if<float>(&arguments[1].value))){
+		const Value::Number *f, *s;
+		if((f = std::get_if<Value::Number>(&arguments[0].value)) && (s = std::get_if<Value::Number>(&arguments[1].value))){
 			if(*f>*s){
 				std::swap(f,s);
 			}
@@ -128,8 +128,8 @@ struct Square
 	
 	static Value eval(const Operations::Definition::ArgumentList &arguments)
 	{
-		const float *f;
-		if(f = std::get_if<float>(&arguments[0].value)){
+		const Value::Number *f;
+		if(f = std::get_if<Value::Number>(&arguments[0].value)){
 			return *f * *f;
 		}
 		return {};
@@ -187,7 +187,7 @@ struct IndexOf
 		
 		using Integer = long long;
 		static_assert(sizeof(Integer)==sizeof(Value::String::size_type));
-		return (float)(Integer)first->find(*second);
+		return (Value::Number)(Integer)first->find(*second);
 	}
 };
 
@@ -203,7 +203,7 @@ struct Ascii
 			if(string->size()<1){
 				return std::nanf(nullptr);
 			}
-			return (float)(*string)[0];
+			return (Value::Number)(*string)[0];
 		}
 		if(auto number = arguments[0].get<Value::Number>()){
 			char character = (char)*number;
