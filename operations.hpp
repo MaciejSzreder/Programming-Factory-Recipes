@@ -207,7 +207,7 @@ struct Ascii
 		}
 		if(auto number = arguments[0].get<Value::Number>()){
 			char character = (char)*number;
-			return Value::String(*number < 32 || 127 < *number ? 0 : 1,character);
+			return Value::String(32 <= *number && *number <= 127,character);
 		}
 
 		throw "unexpected value type " + std::to_string(arguments[0].value.index());
