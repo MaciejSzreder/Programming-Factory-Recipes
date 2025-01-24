@@ -16,6 +16,8 @@ struct Interpreter
 {
 	struct Command
 	{
+		using Argument = std::variant<Value,std::string>;
+
 		std::string type;
 		std::vector<std::variant<Value,std::string>> arguments;
 	};
@@ -42,13 +44,13 @@ struct Interpreter
 
 		command.type = tokens.get<0>().match;
 		
-		auto arguments = utils::map(tokens.get<1>().parsed,[=](auto argument){
+		auto arguments = utils::map(tokens.get<1>().parsed,[=](auto argument)->commands::Commands::Definition::Argument{
 			if(argument == number){
 				return Value(std::any_cast<float>(argument.value));
 			}else if(argument == string){
 				return Value(argument.match);
 			}else if(argument == identifier){
-				return Value(argument.match);
+				return argument.match;
 			}else{
 				throw "unexpected token format";
 			}
