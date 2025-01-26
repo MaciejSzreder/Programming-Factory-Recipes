@@ -266,12 +266,15 @@ struct Quoted: Parser<Quoted>, ParserLeaf
 
 	Parsed consume(auto &begin, auto end)
 	{
+		auto backup = begin;
 		std::string string;
 		std::istringstream stream(std::string(begin,end));
 		stream>>std::quoted(string, quote, escape);
 		bool succeed = stream.good();
-		begin += stream.tellg();
-		return {string, *this, succeed};
+		if(succeed){
+			begin += stream.tellg();
+		}
+		return {std::string(backup, begin), *this, string, succeed};
 	}
 };
 

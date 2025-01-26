@@ -48,7 +48,7 @@ struct Interpreter
 			if(argument == number){
 				return Value(std::any_cast<float>(argument.value));
 			}else if(argument == string){
-				return Value(argument.match);
+				return Value(std::any_cast<std::string>(argument.value));
 			}else if(argument == identifier){
 				return argument.match;
 			}else{
