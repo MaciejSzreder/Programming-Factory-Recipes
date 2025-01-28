@@ -104,7 +104,7 @@ struct Add
 struct Remainder
 {
 	inline static Operations::Defined<Remainder> info;
-	std::string symbol = "%", name = "reminder";
+	std::string symbol = "%", name = "remainder";
 	int arity = 2;
 
 	static Value eval(const Operations::Definition::ArgumentList& arguments)
