@@ -9,12 +9,17 @@
 #include"value.hpp"
 #include"register.hpp"
 
+namespace operations
+{
+
 struct Operations:Register<Operations>{
 	static std::optional<Operations::Definition> find(std::string name);
 };
 
+}
+
 template<>
-struct Register<Operations>::Definition
+struct Register<operations::Operations>::Definition
 {
 	using ArgumentList = std::vector<Value>;
 	using function = std::function<Value(const ArgumentList&)>;
@@ -30,6 +35,9 @@ struct Register<Operations>::Definition
 		eval(definition.eval)
 	{}
 };
+
+namespace operations
+{
 
 std::optional<Operations::Definition> Operations::find(std::string name)
 {
@@ -213,3 +221,5 @@ struct Ascii
 		throw "unexpected value type " + std::to_string(arguments[0].value.index());
 	};
 };
+
+}

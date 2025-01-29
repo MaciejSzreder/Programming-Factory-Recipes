@@ -1,6 +1,10 @@
 #pragma once
 
 #include"recipe.hpp"
+#include"operations.hpp"
+
+using operations::Operations;
+using operations::OperationList;
 
 struct Searcher
 {

@@ -7,6 +7,8 @@
 #include"value.hpp"
 #include"operations.hpp"
 
+using operations::Operations;
+
 struct Recipe
 {
 	Value value;
