@@ -8,9 +8,8 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "-std=c++20",
-                "${workspaceFolder}\\Programming Factory Recipes.cpp",
-                "-o",
-                "${workspaceFolder}\\Programming Factory Recipes.exe"
+                "${workspaceFolder}\\*.cpp",
+                "-o","${workspaceFolder}\\Programming Factory Recipes.exe"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
