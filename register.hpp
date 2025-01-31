@@ -1,6 +1,7 @@
 #pragma once
 
 #include<vector>
+#include<optional>
 
 template<class T>
 struct Register
@@ -9,52 +10,22 @@ struct Register
 
 	inline static std::vector<Definition> definitions;
 	
-	static int size()
-	{
-		return definitions.size();
-	}
-
-	static get(int id){
-		return definitions[id];
-	}
-
-	static Definition define(Definition definition)
-	{
-		definition.id = definitions.size();
-		definitions.push_back(definition);
-		return definitions;
-	}
+	static int size();
+	static Definition get(int id);
 
 	template<typename V>
-	static std::optional<Definition> find(const V& value, V Definition::* field)
-	{
-		auto definition = std::ranges::find(definitions, value, field);
-		if(definition == definitions.end()){
-			return {};
-		}
-		return *definition;
-	}
+	static std::optional<Definition> find(const V& value, V Definition::* field);
 
+	static Definition define(Definition definition);
 	template<class D>
-	Definition define(D definition)
-	{
-		return add(Definition(definition));
-	}
-
+	static Definition define(D definition);
 	template<class D>
-	Definition define()
-	{
-		return add(D());
-	}
-
+	static Definition define();
 	template<class D>
-	struct Defined
+	struct Defined: Definition
 	{
-		Defined()
-		{
-			Register<T>::Definition definition = D();
-			definition.id = definitions.size();
-			definitions.push_back(definition);
-		}
+		Defined();
 	};
 };
+
+#include"register.tpp"
