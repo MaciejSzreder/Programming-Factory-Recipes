@@ -6,6 +6,7 @@
 #include<functional>
 
 #include"../register.hpp"
+#include"../value.hpp"
 
 namespace operations
 {
@@ -35,8 +36,3 @@ struct Register<operations::Operations>::Definition
 		eval(definition.eval)
 	{}
 };
-
-std::optional<operations::Operations::Definition> operations::Operations::find(std::string name)
-{
-	return Register<Operations>::find(name, &Register<Operations>::Definition::name);
-}

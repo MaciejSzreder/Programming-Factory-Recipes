@@ -10,6 +10,7 @@
                 "-std=c++20",
                 "${workspaceFolder}\\*.cpp",
                 "${workspaceFolder}\\commands\\*.cpp",
+                "${workspaceFolder}\\operations\\*.cpp",
                 "-o","${workspaceFolder}\\Programming Factory Recipes.exe"
             ],
             "options": {
