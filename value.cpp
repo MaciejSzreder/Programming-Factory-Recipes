@@ -9,17 +9,17 @@
 #include"value.hpp"
 
 namespace{
-	static std::string stringify(std::monostate)
+	static std::string stringify(Value::None)
 	{
 		return "no value";
 	}
 
-	static std::string stringify(std::string string)
+	static std::string stringify(Value::String string)
 	{
 		return (std::ostringstream()<<std::quoted(string)).str();
 	}
 
-	static std::string stringify(float number)
+	static std::string stringify(Value::Number number)
 	{
 		if(std::isinf(number)){
 			if(number<0){
@@ -51,7 +51,7 @@ std::string Value::stringify() const
 
 bool Value::empty()
 {
-	return std::holds_alternative<std::monostate>(value);
+	return std::holds_alternative<None>(value);
 }
 
 bool Value::Order::bit_orderer(Number f,Number s)
